@@ -17,12 +17,6 @@
         name: "{{ repo_name }}"
         description: "Automated repo created via Ansible Automation Platform"
         private: false
-        has_issues: true
-        has_wiki: false
-        topics:
-          - ansible
-          - automation
-          - aap
         state: present
       no_log: false
 
