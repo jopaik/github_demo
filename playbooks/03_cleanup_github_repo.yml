@@ -15,6 +15,6 @@
 
     - name: Delete GitHub repository
       community.general.github_repo:
-        token: "{{ github_token }}"
+        access_token: "{{ github_token }}"
         name: "{{ repo_name }}"
         state: absent
