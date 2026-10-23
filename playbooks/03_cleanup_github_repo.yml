@@ -1,0 +1,22 @@
+---
+- name: Clean Up GitHub Repository and Local Workspace
+  hosts: localhost
+  gather_facts: false
+  vars:
+    github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') }}"
+    org_name: "my-organization"
+    repo_name: "aap-automation-demo"
+    local_repo_path: "/tmp/{{ repo_name }}"
+
+  tasks:
+    - name: Ensure local checkout directory is removed
+      ansible.builtin.file:
+        path: "{{ local_repo_path }}"
+        state: absent
+
+    - name: Delete GitHub repository
+      community.general.github_repo:
+        token: "{{ github_token }}"
+        organization: "{{ org_name }}"
+        name: "{{ repo_name }}"
+        state: absent

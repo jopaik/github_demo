@@ -1,0 +1,45 @@
+---
+- name: Provision GitHub Repository and Local Workspace
+  hosts: localhost
+  gather_facts: false
+  vars:
+    github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') }}"
+    org_name: "my-organization"
+    repo_name: "aap-automation-demo"
+    local_repo_path: "/tmp/{{ repo_name }}"
+
+  tasks:
+    - name: Ensure GitHub repository exists with proper settings
+      community.general.github_repo:
+        token: "{{ github_token }}"
+        organization: "{{ org_name }}"
+        name: "{{ repo_name }}"
+        description: "Automated repo created via Ansible Automation Platform"
+        private: false
+        has_issues: true
+        has_wiki: false
+        topics:
+          - ansible
+          - automation
+          - aap
+        state: present
+
+    - name: Clone repository to local controller node
+      ansible.scm.git:
+        repo: "https://github.com/{{ org_name }}/{{ repo_name }}.git"
+        dest: "{{ local_repo_path }}"
+        version: main
+
+    - name: Configure local Git user name and email
+      ansible.scm.git_config:
+        repo: "{{ local_repo_path }}"
+        name: user.name
+        value: "AAP Automation Bot"
+        scope: local
+
+    - name: Configure local Git user email
+      ansible.scm.git_config:
+        repo: "{{ local_repo_path }}"
+        name: user.email
+        value: "aap-bot@example.com"
+        scope: local
