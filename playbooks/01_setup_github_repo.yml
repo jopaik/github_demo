@@ -12,7 +12,7 @@
   tasks:
     - name: Ensure GitHub repository exists with proper settings
       community.general.github_repo:
-        token: "{{ github_token }}"
+        access_token: "{{ github_token }}"
         organization: "{{ org_name }}"
         name: "{{ repo_name }}"
         description: "Automated repo created via Ansible Automation Platform"
