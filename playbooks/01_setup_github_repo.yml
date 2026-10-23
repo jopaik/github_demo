@@ -27,7 +27,7 @@
           username: "{{ github_user }}"
         parent_directory: "/tmp"
         name: "{{ repo_name }}"
-      no_log: true
+      no_log: false
 
     - name: Configure local Git user name
       community.general.git_config:
