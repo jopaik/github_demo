@@ -19,6 +19,22 @@
         state: present
       no_log: false
 
+    - name: Ensure GitHub repository exists with initial README
+      ansible.builtin.uri:
+        url: "https://api.github.com/user/repos"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ github_token }}"
+          Accept: "application/vnd.github+json"
+        body_format: json
+        body:
+          name: "{{ repo_name }}"
+          description: "Automated repo created via Ansible Automation Platform"
+          private: false
+          auto_init: true   # <--- Generates initial README and creates default branch
+        status_code: [201, 422]
+      no_log: true
+      
     - name: Retrieve Git repository into local directory
       ansible.scm.git_retrieve:
         origin:
