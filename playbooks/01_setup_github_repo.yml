@@ -24,9 +24,7 @@
         origin:
           url: "https://github.com/{{ github_user }}/{{ repo_name }}.git"
           token: "{{ github_token }}"
-          username: "{{ github_user }}"
         parent_directory: "/tmp"
-        name: "{{ repo_name }}"
       no_log: false
 
     - name: Configure local Git user name
