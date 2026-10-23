@@ -4,6 +4,7 @@
   gather_facts: false
   vars:
     github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') }}"
+    github_user: "{{ lookup('ansible.builtin.env', 'GITHUB_USER') | default('x-access-token', true) }}"
     org_name: "my-organization"
     repo_name: "aap-automation-demo"
     local_repo_path: "/tmp/{{ repo_name }}"
@@ -23,14 +24,17 @@
           - automation
           - aap
         state: present
+      no_log: true
 
     - name: Retrieve Git repository into local directory
       ansible.scm.git_retrieve:
         origin:
           url: "https://github.com/{{ org_name }}/{{ repo_name }}.git"
           token: "{{ github_token }}"
+          username: "{{ github_user }}"
         parent_directory: "/tmp"
         name: "{{ repo_name }}"
+      no_log: true
 
     - name: Configure local Git user name
       community.general.git_config:
@@ -58,4 +62,6 @@
       ansible.scm.git_publish:
         path: "{{ local_repo_path }}"
         token: "{{ github_token }}"
+        username: "{{ github_user }}"
         message: "Initial commit via ansible.scm.git_publish"
+      no_log: true
