@@ -4,8 +4,7 @@
   gather_facts: false
   vars:
     github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') }}"
-    org_name: "my-organization"
-    repo_name: "aap-automation-demo"
+    repo_name: "aap-automation-github-demo"
     local_repo_path: "/tmp/{{ repo_name }}"
 
   tasks:
@@ -17,6 +16,5 @@
     - name: Delete GitHub repository
       community.general.github_repo:
         token: "{{ github_token }}"
-        organization: "{{ org_name }}"
         name: "{{ repo_name }}"
         state: absent
