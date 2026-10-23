@@ -5,21 +5,12 @@
   vars:
     github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') }}"
     github_user: "{{ lookup('ansible.builtin.env', 'GITHUB_USER') | default('x-access-token', true) }}"
-    org_name: "jopaik"
+    repo_owner: "jopaik"
     repo_name: "aap-automation-github-demo"
     local_repo_path: "/tmp/{{ repo_name }}"
 
   tasks:
-    - name: Ensure GitHub repository exists with proper settings
-      community.general.github_repo:
-        access_token: "{{ github_token }}"
-        name: "{{ repo_name }}"
-        description: "Automated repo created via Ansible Automation Platform"
-        private: false
-        state: present
-      no_log: false
-
-    - name: Ensure GitHub repository exists with initial README
+    - name: Ensure GitHub repository exists
       ansible.builtin.uri:
         url: "https://api.github.com/user/repos"
         method: POST
@@ -31,17 +22,36 @@
           name: "{{ repo_name }}"
           description: "Automated repo created via Ansible Automation Platform"
           private: false
-          auto_init: true   # <--- Generates initial README and creates default branch
+          auto_init: true
         status_code: [201, 422]
       no_log: true
-      
+
+    - name: Seed initial README via API if repository has no commits
+      ansible.builtin.uri:
+        url: "https://api.github.com/repos/{{ repo_owner }}/{{ repo_name }}/contents/README.md"
+        method: PUT
+        headers:
+          Authorization: "Bearer {{ github_token }}"
+          Accept: "application/vnd.github+json"
+        body_format: json
+        body:
+          message: "Initial commit via GitHub API"
+          content: "{{ '# ' ~ repo_name | b64encode }}"
+        status_code: [201, 422]  # 201 if created now, 422 if README already exists
+      no_log: true
+
+    - name: Clean existing local temporary directory if present
+      ansible.builtin.file:
+        path: "{{ local_repo_path }}"
+        state: absent
+
     - name: Retrieve Git repository into local directory
       ansible.scm.git_retrieve:
         origin:
-          url: "https://github.com/{{ github_user }}/{{ repo_name }}.git"
+          url: "https://github.com/{{ repo_owner }}/{{ repo_name }}.git"
           token: "{{ github_token }}"
         parent_directory: "/tmp"
-      no_log: false
+      no_log: true
 
     - name: Configure local Git user name
       community.general.git_config:
@@ -57,18 +67,15 @@
         value: "aap-bot@example.com"
         scope: local
 
-    - name: Create initial README file
-      ansible.builtin.copy:
-        dest: "{{ local_repo_path }}/README.md"
-        content: |
-          # AAP Automation Demo
-          This repository was provisioned using Ansible Automation Platform and `ansible.scm`.
-        mode: '0644'
+    - name: Append content to README file
+      ansible.builtin.lineinfile:
+        path: "{{ local_repo_path }}/README.md"
+        line: "Managed by Ansible Automation Platform and ansible.scm."
 
-    - name: Commit and publish changes to remote repository
+    - name: Publish changes back to remote repository
       ansible.scm.git_publish:
         path: "{{ local_repo_path }}"
         token: "{{ github_token }}"
         username: "{{ github_user }}"
-        message: "Initial commit via ansible.scm.git_publish"
+        message: "Update README via ansible.scm.git_publish"
       no_log: true
