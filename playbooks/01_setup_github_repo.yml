@@ -5,6 +5,7 @@
   vars:
     github_token: "{{ lookup('ansible.builtin.env', 'GITHUB_TOKEN') }}"
     github_user: "{{ lookup('ansible.builtin.env', 'GITHUB_USER') | default('x-access-token', true) }}"
+    org_name: "jopaik"
     repo_name: "aap-automation-github-demo"
     local_repo_path: "/tmp/{{ repo_name }}"
 
