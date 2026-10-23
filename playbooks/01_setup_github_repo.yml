@@ -24,7 +24,7 @@
           - automation
           - aap
         state: present
-      no_log: true
+      no_log: false
 
     - name: Retrieve Git repository into local directory
       ansible.scm.git_retrieve:
