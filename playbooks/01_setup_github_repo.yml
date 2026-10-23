@@ -1,5 +1,5 @@
 ---
-- name: Provision GitHub Repository and Workspace via ansible.scm
+- name: Provision GitHub Repository and Push Initial Commit
   hosts: localhost
   gather_facts: false
   vars:
@@ -22,22 +22,7 @@
           name: "{{ repo_name }}"
           description: "Automated repo created via Ansible Automation Platform"
           private: false
-          auto_init: true
         status_code: [201, 422]
-      no_log: true
-
-    - name: Seed initial README via API if repository has no commits
-      ansible.builtin.uri:
-        url: "https://api.github.com/repos/{{ repo_owner }}/{{ repo_name }}/contents/README.md"
-        method: PUT
-        headers:
-          Authorization: "Bearer {{ github_token }}"
-          Accept: "application/vnd.github+json"
-        body_format: json
-        body:
-          message: "Initial commit via GitHub API"
-          content: "{{ '# ' ~ repo_name | b64encode }}"
-        status_code: [201, 422]  # 201 if created now, 422 if README already exists
       no_log: true
 
     - name: Clean existing local temporary directory if present
@@ -45,13 +30,22 @@
         path: "{{ local_repo_path }}"
         state: absent
 
-    - name: Retrieve Git repository into local directory
-      ansible.scm.git_retrieve:
-        origin:
-          url: "https://github.com/{{ repo_owner }}/{{ repo_name }}.git"
-          token: "{{ github_token }}"
-        parent_directory: "/tmp"
-      no_log: false
+    - name: Create local repo directory
+      ansible.builtin.file:
+        path: "{{ local_repo_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Initialize Git repository locally
+      ansible.builtin.command:
+        cmd: git init -b main
+        chdir: "{{ local_repo_path }}"
+
+    - name: Configure remote origin with token auth
+      ansible.builtin.command:
+        cmd: "git remote add origin https://{{ github_user }}:{{ github_token }}@github.com/{{ repo_owner }}/{{ repo_name }}.git"
+        chdir: "{{ local_repo_path }}"
+      no_log: true
 
     - name: Configure local Git user name
       community.general.git_config:
@@ -67,15 +61,26 @@
         value: "aap-bot@example.com"
         scope: local
 
-    - name: Append content to README file
-      ansible.builtin.lineinfile:
-        path: "{{ local_repo_path }}/README.md"
-        line: "Managed by Ansible Automation Platform and ansible.scm."
+    - name: Create initial README file
+      ansible.builtin.copy:
+        dest: "{{ local_repo_path }}/README.md"
+        content: |
+          # AAP Automation Demo
+          This repository was provisioned and initialized via Ansible Automation Platform.
+        mode: '0644'
 
-    - name: Publish changes back to remote repository
-      ansible.scm.git_publish:
-        path: "{{ local_repo_path }}"
-        token: "{{ github_token }}"
-        username: "{{ github_user }}"
-        message: "Update README via ansible.scm.git_publish"
+    - name: Stage files
+      ansible.builtin.command:
+        cmd: git add README.md
+        chdir: "{{ local_repo_path }}"
+
+    - name: Create initial commit
+      ansible.builtin.command:
+        cmd: git commit -m "Initial commit via Ansible Automation Platform"
+        chdir: "{{ local_repo_path }}"
+
+    - name: Push initial commit to main branch
+      ansible.builtin.command:
+        cmd: git push -u origin main
+        chdir: "{{ local_repo_path }}"
       no_log: true
