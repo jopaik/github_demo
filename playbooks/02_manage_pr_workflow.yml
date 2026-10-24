@@ -63,9 +63,8 @@
       ansible.scm.git_publish:
         path: "{{ local_repo_path }}"
         token: "{{ github_token }}"
-        username: "{{ github_user }}"
-        branch: "{{ feature_branch }}"
-      no_log: false
+        user: "{{ github_user }}"
+      no_log: true
 
     - name: Create Pull Request via GitHub REST API
       ansible.builtin.uri:
