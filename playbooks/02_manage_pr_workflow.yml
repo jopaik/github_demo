@@ -63,7 +63,9 @@
       ansible.scm.git_publish:
         path: "{{ local_repo_path }}"
         token: "{{ github_token }}"
-        user: "{{ github_user }}"
+        user:
+          name: "AAP Automation Bot"
+          email: "aap-bot@example.com"
       no_log: false
 
     - name: Create Pull Request via GitHub REST API
