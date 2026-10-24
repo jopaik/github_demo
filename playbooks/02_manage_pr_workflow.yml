@@ -65,7 +65,7 @@
         token: "{{ github_token }}"
         username: "{{ github_user }}"
         branch: "{{ feature_branch }}"
-      no_log: true
+      no_log: false
 
     - name: Create Pull Request via GitHub REST API
       ansible.builtin.uri:
