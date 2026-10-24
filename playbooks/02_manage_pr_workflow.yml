@@ -66,7 +66,7 @@
         user:
           name: "AAP Automation Bot"
           email: "aap-bot@example.com"
-      no_log: false
+      no_log: true
 
     - name: Create Pull Request via GitHub REST API
       ansible.builtin.uri:
