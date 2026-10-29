@@ -1,0 +1,31 @@
+---
+- name: Inspect Execution Environment Details
+  hosts: localhost
+  gather_facts: true
+  tasks:
+    - name: Get ansible-core version details
+      ansible.builtin.debug:
+        msg:
+          - "Ansible Core Version: {{ ansible_version.full }}"
+          - "Python Executable: {{ ansible_playbook_python }}"
+          - "Python Version: {{ ansible_python_version }}"
+
+    - name: List installed Ansible collections
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection list
+      register: collections_list
+      changed_when: false
+
+    - name: Display installed collections
+      ansible.builtin.debug:
+        msg: "{{ collections_list.stdout_lines }}"
+
+    - name: List installed Python packages
+      ansible.builtin.command:
+        cmd: "{{ ansible_playbook_python }} -m pip list"
+      register: pip_list
+      changed_when: false
+
+    - name: Display installed Python libraries
+      ansible.builtin.debug:
+        msg: "{{ pip_list.stdout_lines }}"
